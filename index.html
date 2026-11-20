@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clément Laroche — speech &amp; audio ML on the edge</title>
+<meta name="description" content="Research scientist building compact speech-enhancement and audio models for microcontrollers and NPUs — and the tools to measure how they sound.">
+<meta name="author" content="Clément Laroche">
+<link rel="canonical" href="https://larochec.github.io/">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#f6f4ef" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121211" media="(prefers-color-scheme: dark)">
+
+<meta property="og:type" content="profile">
+<meta property="profile:first_name" content="Clément">
+<meta property="profile:last_name" content="Laroche">
+<meta property="og:title" content="Clément Laroche — speech &amp; audio ML on the edge">
+<meta property="og:description" content="Compact speech-enhancement and audio models for microcontrollers and NPUs — and the tools to measure how they sound.">
+<meta property="og:url" content="https://larochec.github.io/">
+<meta property="og:image" content="https://larochec.github.io/assets/img/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Clément Laroche — speech &amp; audio ML on the edge">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+<link rel="preload" href="assets/fonts/newsreader-latin-opsz.woff2" as="font" type="font/woff2" crossorigin>
+
+<script>
+  /* Apply a saved theme before first paint, and flag that JS is available. */
+  (function () {
+    var root = document.documentElement;
+    root.classList.add('js');
+    try {
+      var saved = localStorage.getItem('theme');
+      if (saved === 'light' || saved === 'dark') root.setAttribute('data-theme', saved);
+    } catch (e) { /* storage unavailable: follow the system theme */ }
+  })();
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "name": "Clément Laroche",
+  "url": "https://larochec.github.io/",
+  "image": "https://larochec.github.io/assets/img/portrait.jpg",
+  "sameAs": [
+    "https://github.com/LarocheC",
+    "https://huggingface.co/claroche1",
+    "https://scholar.google.com/citations?user=jn-pQdUAAAAJ",
+    "https://www.linkedin.com/in/clement-laroche-91944a132/"
+  ],
+  "knowsAbout": ["Speech enhancement", "Audio signal processing", "Machine learning", "Neural network quantization", "Edge AI", "Audio source separation"]
+}
+</script>
+
+<style>
+  /* ---------- Fonts (self-hosted, SIL OFL — see assets/fonts/Newsreader-OFL.txt) ---------- */
+  @font-face {
+    font-family: "Newsreader";
+    src: url("assets/fonts/newsreader-latin-opsz.woff2") format("woff2");
+    font-weight: 200 800;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  /* ---------- Design tokens ---------- */
+  :root {
+    --bg: #f6f4ef;
+    --surface: #fffdf9;
+    --surface-2: #eeebe3;
+    --ink: #1b1a17;
+    --ink-2: #47443d;
+    --ink-3: #6b675e;
+    --rule: #dfdbd1;
+    --accent: #b23d14;
+    --accent-soft: rgba(178, 61, 20, 0.09);
+    --shadow: 0 1px 2px rgba(27, 26, 23, 0.05), 0 14px 36px -18px rgba(27, 26, 23, 0.28);
+
+    --font-serif: "Newsreader", "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+    --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+
+    --max: 68rem;
+    --header-h: 60px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121211;
+      --surface: #1a1a18;
+      --surface-2: #24241f;
+      --ink: #eceae4;
+      --ink-2: #c4c1b7;
+      --ink-3: #9a968b;
+      --rule: #2f2e29;
+      --accent: #ff9466;
+      --accent-soft: rgba(255, 148, 102, 0.12);
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 14px 36px -18px rgba(0, 0, 0, 0.7);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #121211;
+    --surface: #1a1a18;
+    --surface-2: #24241f;
+    --ink: #eceae4;
+    --ink-2: #c4c1b7;
+    --ink-3: #9a968b;
+    --rule: #2f2e29;
+    --accent: #ff9466;
+    --accent-soft: rgba(255, 148, 102, 0.12);
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 14px 36px -18px rgba(0, 0, 0, 0.7);
+  }
+
+  /* ---------- Base ---------- */
+  *, *::before, *::after { box-sizing: border-box; }
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    scroll-behavior: smooth;
+    scroll-padding-top: calc(var(--header-h) + 16px);
+  }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 400 1.0625rem/1.65 var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  img { display: block; max-width: 100%; height: auto; }
+  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 0.2em; }
+  a:hover { text-decoration-thickness: 2px; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+  h1, h2, h3, h4 { text-wrap: balance; }
+  p { text-wrap: pretty; }
+  .wrap { width: min(100% - 2rem, var(--max)); margin-inline: auto; }
+  @media (min-width: 640px) { .wrap { width: min(100% - 3rem, var(--max)); } }
+  .visually-hidden {
+    position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  }
+  .skip-link {
+    position: absolute; left: 1rem; top: -100px; z-index: 50;
+    background: var(--ink); color: var(--bg); padding: 0.6rem 1rem; border-radius: 8px;
+  }
+  .skip-link:focus { top: 0.75rem; }
+
+  /* ---------- Header ---------- */
+  .site-header {
+    position: sticky; top: 0; z-index: 20;
+    background: var(--bg);
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.2s ease;
+  }
+  @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .site-header {
+      background: color-mix(in srgb, var(--bg) 82%, transparent);
+      -webkit-backdrop-filter: saturate(1.4) blur(12px);
+      backdrop-filter: saturate(1.4) blur(12px);
+    }
+  }
+  .site-header.is-scrolled { border-bottom-color: var(--rule); }
+  .bar { display: flex; align-items: center; gap: 1rem; height: var(--header-h); }
+  .brand {
+    display: inline-flex; align-items: center; gap: 0.55rem;
+    color: var(--ink); text-decoration: none;
+    font-family: var(--font-serif); font-size: 1.1875rem; font-weight: 520; letter-spacing: -0.01em;
+  }
+  .brand svg { width: 22px; height: 22px; color: var(--accent); flex: none; }
+  .site-nav { margin-left: auto; display: flex; gap: 0.15rem; }
+  .site-nav a {
+    color: var(--ink-2); text-decoration: none; font-size: 0.9375rem;
+    padding: 0.4rem 0.7rem; border-radius: 999px;
+    transition: background-color 0.15s ease, color 0.15s ease;
+  }
+  .site-nav a:hover { color: var(--ink); background: var(--surface-2); }
+  .site-nav a.is-active { color: var(--ink); background: var(--surface-2); }
+  .theme-toggle {
+    display: none; /* shown only when JS runs */
+    align-items: center; justify-content: center; flex: none;
+    width: 38px; height: 38px; padding: 0; border-radius: 999px;
+    border: 1px solid var(--rule); background: var(--surface); color: var(--ink-2);
+    cursor: pointer; transition: border-color 0.15s ease, color 0.15s ease;
+  }
+  .js .theme-toggle { display: inline-flex; }
+  .theme-toggle:hover { color: var(--ink); border-color: var(--ink-3); }
+  .theme-toggle svg { width: 18px; height: 18px; }
+  .theme-toggle .icon-sun { display: none; }
+  :root[data-theme="dark"] .theme-toggle .icon-sun { display: block; }
+  :root[data-theme="dark"] .theme-toggle .icon-moon { display: none; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .theme-toggle .icon-sun { display: block; }
+    :root:not([data-theme="light"]) .theme-toggle .icon-moon { display: none; }
+  }
+  @media (max-width: 639px) {
+    .site-nav { display: none; }
+    .theme-toggle { margin-left: auto; }
+  }
+
+  /* ---------- Hero ---------- */
+  .hero { padding-block: clamp(2.75rem, 8vw, 6.5rem) clamp(2.5rem, 6vw, 4.5rem); }
+  .hero-grid { display: grid; gap: 1.75rem; align-items: center; }
+  @media (min-width: 800px) { .hero-grid { grid-template-columns: minmax(0, 1fr) auto; gap: 4rem; } }
+  .eyebrow {
+    margin: 0 0 1.1rem;
+    font: 500 0.8125rem/1.4 var(--font-mono);
+    letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3);
+  }
+  .eyebrow .sep { color: var(--accent); padding-inline: 0.35em; }
+  h1 {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-weight: 430;
+    font-size: clamp(2.875rem, 1.6rem + 5.6vw, 5.5rem);
+    line-height: 0.98;
+    letter-spacing: -0.028em;
+  }
+  .lede {
+    margin: 1.5rem 0 0; max-width: 33em;
+    font-size: clamp(1.1875rem, 1.02rem + 0.65vw, 1.4375rem);
+    line-height: 1.5; color: var(--ink-2);
+  }
+  .profile-links { list-style: none; margin: 2rem 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.55rem; }
+  .profile-links a {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    padding: 0.5rem 0.95rem 0.5rem 0.8rem;
+    border: 1px solid var(--rule); border-radius: 999px; background: var(--surface);
+    color: var(--ink); text-decoration: none; font-size: 0.9375rem; line-height: 1.3;
+    transition: border-color 0.15s ease, transform 0.15s ease;
+  }
+  .profile-links a:hover { border-color: var(--ink-3); transform: translateY(-1px); }
+  .profile-links svg { width: 17px; height: 17px; flex: none; color: var(--ink-2); }
+  .portrait {
+    width: clamp(104px, 20vw, 176px); aspect-ratio: 1; object-fit: cover;
+    border-radius: 50%; border: 1px solid var(--rule); box-shadow: var(--shadow);
+    background: var(--surface-2);
+  }
+  @media (max-width: 799px) { .portrait { order: -1; } }
+
+  /* Streaming "noisy in, enhanced out" signal strip */
+  .signal { display: none; margin: clamp(2.5rem, 6vw, 4rem) 0 0; }
+  .js .signal { display: block; }
+  .signal canvas { display: block; width: 100%; height: 84px; }
+  @media (max-width: 639px) { .signal canvas { height: 72px; } }
+  .signal figcaption {
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    margin-top: 0.7rem;
+    font: 500 0.6875rem/1.4 var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3);
+  }
+  .signal-toggle {
+    font: inherit; letter-spacing: inherit; text-transform: inherit; color: var(--ink-3);
+    background: none; border: 1px solid var(--rule); border-radius: 999px;
+    padding: 0.3rem 0.75rem; cursor: pointer;
+  }
+  .signal-toggle:hover { color: var(--ink); border-color: var(--ink-3); }
+  @media (prefers-reduced-motion: reduce) { .signal-toggle { visibility: hidden; } }
+
+  /* ---------- Sections ---------- */
+  .section { padding-block: clamp(3.5rem, 8vw, 6rem); border-top: 1px solid var(--rule); }
+  .section-head { margin-bottom: clamp(1.75rem, 4vw, 2.75rem); }
+  .section-num {
+    margin: 0 0 0.6rem;
+    font: 500 0.8125rem/1 var(--font-mono); letter-spacing: 0.06em; color: var(--accent);
+  }
+  .section-title {
+    margin: 0;
+    font-family: var(--font-serif); font-weight: 440;
+    font-size: clamp(2rem, 1.45rem + 2vw, 2.875rem); line-height: 1.08; letter-spacing: -0.02em;
+  }
+  .section-sub { margin: 0.75rem 0 0; max-width: 40em; color: var(--ink-3); }
+
+  /* About */
+  .about-grid { display: grid; gap: 2.5rem; }
+  @media (min-width: 900px) { .about-grid { grid-template-columns: minmax(0, 1fr) 19rem; gap: 4.5rem; } }
+  .prose { max-width: 40rem; }
+  .prose p { margin: 0 0 1.1em; color: var(--ink-2); }
+  .prose p:first-child { font-size: 1.1875rem; line-height: 1.6; color: var(--ink); }
+  .prose p:last-child { margin-bottom: 0; }
+  .facts { display: grid; gap: 1.75rem; align-content: start; }
+  .facts h3 {
+    margin: 0 0 0.75rem;
+    font: 500 0.75rem/1 var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3);
+  }
+  .tags { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.45rem; }
+  .tags li {
+    padding: 0.28rem 0.7rem; border: 1px solid var(--rule); border-radius: 999px;
+    background: var(--surface); font-size: 0.875rem; color: var(--ink-2); line-height: 1.4;
+  }
+
+  /* Featured project */
+  .featured {
+    display: grid; gap: 1.5rem 2.75rem; align-items: center;
+    padding: clamp(0.875rem, 2.2vw, 1.5rem);
+    margin-bottom: clamp(2.5rem, 6vw, 4rem);
+    background: var(--surface); border: 1px solid var(--rule); border-radius: 18px; box-shadow: var(--shadow);
+  }
+  @media (min-width: 900px) { .featured { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); } }
+  .featured figure { margin: 0; }
+  .featured img { width: 100%; border-radius: 10px; background: var(--surface-2); }
+  .featured figcaption { margin-top: 0.65rem; font: 0.75rem/1.5 var(--font-mono); color: var(--ink-3); }
+  .featured-body { padding: 0.25rem clamp(0.25rem, 1.5vw, 0.75rem) 0.5rem; }
+  .kicker {
+    margin: 0;
+    font: 500 0.75rem/1.4 var(--font-mono); letter-spacing: 0.07em; text-transform: uppercase; color: var(--accent);
+  }
+  .featured h3 {
+    margin: 0.45rem 0 0.65rem;
+    font-family: var(--font-serif); font-weight: 480;
+    font-size: clamp(1.75rem, 1.35rem + 1.2vw, 2.25rem); line-height: 1.1; letter-spacing: -0.015em;
+  }
+  .featured h3 a { color: var(--ink); text-decoration: none; }
+  .featured h3 a:hover { color: var(--accent); }
+  .featured-body > p { color: var(--ink-2); margin: 0; }
+  .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.9rem; margin: 1.5rem 0 1.25rem; }
+  @media (max-width: 420px) { .stats { gap: 0.6rem; } }
+  .stats div { display: flex; flex-direction: column-reverse; justify-content: flex-end; gap: 0.3rem; padding-top: 0.7rem; border-top: 1px solid var(--rule); }
+  .stats dd {
+    margin: 0;
+    font: 460 clamp(1.5rem, 1.2rem + 1vw, 1.875rem)/1 var(--font-serif);
+    color: var(--ink); font-variant-numeric: tabular-nums; letter-spacing: -0.01em;
+  }
+  .stats dt { font: 0.75rem/1.4 var(--font-mono); color: var(--ink-3); }
+  .more { display: inline-flex; align-items: center; gap: 0.35rem; font-weight: 550; }
+
+  /* Project index, grouped by theme */
+  .theme { display: grid; gap: 1rem 3rem; padding-block: 2rem; border-top: 1px solid var(--rule); }
+  .theme:last-of-type { padding-bottom: 0; }
+  @media (min-width: 900px) { .theme { grid-template-columns: 17rem minmax(0, 1fr); } }
+  .theme-head h3 {
+    margin: 0 0 0.4rem;
+    font-family: var(--font-serif); font-weight: 500; font-size: 1.375rem; line-height: 1.2; letter-spacing: -0.01em;
+  }
+  .theme-head p { margin: 0; font-size: 0.9375rem; color: var(--ink-3); }
+  .projects { list-style: none; margin: 0; padding: 0; display: grid; gap: 1.75rem; }
+  .project h4 { margin: 0; font: 600 1.0625rem/1.3 var(--font-mono); letter-spacing: -0.01em; }
+  .project h4 a { color: var(--ink); text-decoration: none; }
+  .project h4 a::after { content: " ↗"; color: var(--ink-3); font-weight: 400; }
+  .project h4 a:hover { color: var(--accent); }
+  .project h4 a:hover::after { color: var(--accent); }
+  .project p { margin: 0.4rem 0 0; color: var(--ink-2); max-width: 44rem; }
+  .meta {
+    display: flex; flex-wrap: wrap; gap: 0.3rem 1rem; margin-top: 0.6rem;
+    font: 0.75rem/1.5 var(--font-mono); color: var(--ink-3); list-style: none; padding: 0;
+  }
+  .meta .hl { color: var(--accent); }
+  .meta code { font: inherit; color: var(--ink-2); }
+  .project .extra { display: flex; flex-wrap: wrap; gap: 0.4rem 1.1rem; margin-top: 0.55rem; font-size: 0.875rem; }
+  .project .note { font-size: 0.9375rem; color: var(--ink-3); }
+  .also {
+    margin: 2.25rem 0 0; padding-top: 1.75rem; border-top: 1px solid var(--rule);
+    color: var(--ink-3); font-size: 0.9375rem;
+  }
+  .also a { font-family: var(--font-mono); font-size: 0.875rem; }
+
+  /* Publications */
+  .pubs { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; max-width: 52rem; }
+  .pub { display: grid; grid-template-columns: 4.25rem minmax(0, 1fr); gap: 1.25rem; padding-block: 1.35rem; border-top: 1px solid var(--rule); }
+  .pub:last-child { border-bottom: 1px solid var(--rule); }
+  .pub-year { font: 500 0.875rem/1.9 var(--font-mono); color: var(--ink-3); }
+  .pub-title { margin: 0; font: 480 1.25rem/1.35 var(--font-serif); color: var(--ink); letter-spacing: -0.005em; }
+  .pub-authors { margin: 0.35rem 0 0; font-size: 0.9375rem; color: var(--ink-2); }
+  .pub-authors b { font-weight: 600; color: var(--ink); }
+  .pub-venue { margin: 0.15rem 0 0; font-size: 0.9375rem; color: var(--ink-3); }
+  .pub-links { margin: 0.45rem 0 0; font-size: 0.875rem; }
+  .pubs-more { margin: 1.75rem 0 0; }
+
+  /* Contact */
+  .contact-lede {
+    margin: 0; max-width: 36rem;
+    font-family: var(--font-serif); font-size: clamp(1.375rem, 1.15rem + 0.9vw, 1.75rem); line-height: 1.4; font-weight: 400; color: var(--ink);
+  }
+  .contact-links { list-style: none; margin: 2.25rem 0 0; padding: 0; display: grid; gap: 0.75rem; }
+  @media (min-width: 700px) { .contact-links { grid-template-columns: 1fr 1fr; } }
+  .contact-links a {
+    display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 0.9rem;
+    padding: 1rem 1.15rem; border: 1px solid var(--rule); border-radius: 14px; background: var(--surface);
+    color: var(--ink); text-decoration: none;
+    transition: border-color 0.15s ease, transform 0.15s ease;
+  }
+  .contact-links a:hover { border-color: var(--ink-3); transform: translateY(-1px); }
+  .contact-links svg { width: 22px; height: 22px; color: var(--ink-2); }
+  .contact-links .label { display: block; font-weight: 600; }
+  .contact-links .handle { display: block; font: 0.8125rem/1.4 var(--font-mono); color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .contact-links .arrow { color: var(--ink-3); font-family: var(--font-mono); }
+  .contact-links a:hover .arrow { color: var(--accent); }
+
+  /* ---------- Footer ---------- */
+  .site-footer { border-top: 1px solid var(--rule); padding-block: 1.75rem 2.5rem; color: var(--ink-3); font-size: 0.875rem; }
+  .site-footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.5rem 2rem; }
+  .site-footer p { margin: 0; }
+
+  /* ---------- Print ---------- */
+  @media print {
+    .site-header, .signal, .skip-link { display: none !important; }
+    body { background: #fff; color: #000; font-size: 11pt; }
+    .section { padding-block: 1.25rem; border-top-color: #bbb; }
+    .featured, .contact-links a, .profile-links a, .tags li { box-shadow: none; background: #fff; }
+    .featured, .pub, .project { break-inside: avoid; }
+    a { color: #000; }
+  }
+</style>
+</head>
+
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site-header" id="site-header">
+  <div class="wrap bar">
+    <a class="brand" href="#top">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M3 10v4M7.5 6.5v11M12 3v18M16.5 7.5v9M21 10.5v3"/></svg>
+      <span>Clément Laroche</span>
+    </a>
+    <nav class="site-nav" aria-label="Sections">
+      <a href="#about">About</a>
+      <a href="#work">Work</a>
+      <a href="#publications">Publications</a>
+      <a href="#contact">Contact</a>
+    </nav>
+    <button class="theme-toggle" type="button" aria-label="Dark theme" aria-pressed="false" title="Toggle dark theme">
+      <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 14.2A8.5 8.5 0 1 1 9.8 3.5a6.6 6.6 0 0 0 10.7 10.7Z"/></svg>
+      <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></svg>
+    </button>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- ======================= Hero ======================= -->
+  <section class="hero" id="top" aria-labelledby="name">
+    <div class="wrap">
+      <div class="hero-grid">
+        <div class="hero-text">
+          <p class="eyebrow">Research scientist<span class="sep" aria-hidden="true">/</span>Speech &amp; audio ML</p>
+          <h1 id="name">Clément Laroche</h1>
+          <p class="lede">I make speech-enhancement and audio models small enough to run on microcontrollers and NPUs — and build the tools to check that they still sound good.</p>
+          <ul class="profile-links">
+            <li><a href="https://github.com/LarocheC">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.4 5.4 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65S8.93 17.38 9 18v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
+              GitHub</a></li>
+            <li><a href="https://huggingface.co/claroche1">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8.3 14.2c.9 1.5 2.2 2.3 3.7 2.3s2.8-.8 3.7-2.3"/><path d="M9 9.6v.6M15 9.6v.6"/></svg>
+              Hugging Face</a></li>
+            <li><a href="https://scholar.google.com/citations?user=jn-pQdUAAAAJ">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 9 12 4l9.5 5-9.5 5-9.5-5Z"/><path d="M6.5 11.3v4.4c1.4 1.5 3.3 2.3 5.5 2.3s4.1-.8 5.5-2.3v-4.4"/><path d="M21.5 9v5"/></svg>
+              Google Scholar</a></li>
+            <li><a href="https://www.linkedin.com/in/clement-laroche-91944a132/">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3.5"/><path d="M8 10.5V16M8 7.8v.01M12 16v-5.5M12 13.2c0-1.6 1-2.7 2.3-2.7s2.2 1 2.2 2.7V16"/></svg>
+              LinkedIn</a></li>
+          </ul>
+        </div>
+        <img class="portrait" src="assets/img/portrait.jpg" width="360" height="360" alt="Portrait of Clément Laroche">
+      </div>
+
+      <figure class="signal">
+        <canvas id="signal" aria-hidden="true"></canvas>
+        <figcaption>
+          <span>Noisy in</span>
+          <button class="signal-toggle" id="signal-toggle" type="button" aria-label="Pause animation">Pause</button>
+          <span>Enhanced out</span>
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ======================= About ======================= -->
+  <section class="section" id="about" aria-labelledby="about-title">
+    <div class="wrap">
+      <header class="section-head">
+        <p class="section-num">01</p>
+        <h2 class="section-title" id="about-title">About</h2>
+      </header>
+      <div class="about-grid">
+        <div class="prose">
+          <p>I’m a research scientist at Jabra (GN Audio) in Copenhagen, working on speech enhancement for hearing and audio devices. Most of my work lives in the gap between a model that works in PyTorch and one that runs in real time on an embedded chip: compact causal architectures, quantization-aware training down to int8 and int4, structured weight matrices, and deployment on microcontroller NPUs.</p>
+          <p>Structure is the thread that runs through it. My PhD, at Télécom ParisTech and the Laboratoire des Signaux et Systèmes, was on music source separation with structured non-negative matrix factorization — teasing drums apart from harmony. Today the factorizations are butterfly and Monarch matrices, and the goal is speech models cheap enough for a microcontroller.</p>
+          <p>I care just as much about measurement. I’ve written a GPU implementation of the PESQ loss, turned DNSMOS into a differentiable loss that runs on-device, and fine-tuned an audio LLM to explain what’s wrong with a recording. Code and models are open whenever I can make them so.</p>
+        </div>
+        <aside class="facts" aria-label="Focus areas and tools">
+          <div>
+            <h3>Focus</h3>
+            <ul class="tags">
+              <li>Speech enhancement</li>
+              <li>Quantization-aware training</li>
+              <li>Structured matrices</li>
+              <li>Embedded NPUs</li>
+              <li>Speech quality assessment</li>
+              <li>Source separation</li>
+            </ul>
+          </div>
+          <div>
+            <h3>Toolbox</h3>
+            <ul class="tags">
+              <li>PyTorch</li>
+              <li>Triton</li>
+              <li>CUDA</li>
+              <li>ONNX Runtime</li>
+              <li>ST Edge AI</li>
+              <li>TensorFlow</li>
+              <li>C</li>
+            </ul>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================= Work ======================= -->
+  <section class="section" id="work" aria-labelledby="work-title">
+    <div class="wrap">
+      <header class="section-head">
+        <p class="section-num">02</p>
+        <h2 class="section-title" id="work-title">Selected work</h2>
+        <p class="section-sub">Open-source projects, grouped by the problem they tackle. Most come with measured numbers, not just code.</p>
+      </header>
+
+      <article class="featured" aria-labelledby="featured-title">
+        <figure>
+          <picture>
+            <source type="image/webp" srcset="assets/img/stm32n6-board-720.webp 720w, assets/img/stm32n6-board-1280.webp 1280w" sizes="(min-width: 1100px) 560px, (min-width: 900px) 52vw, 100vw">
+            <img src="assets/img/stm32n6-board-1280.jpg" width="1280" height="768" loading="lazy" decoding="async"
+                 alt="An STM32N6570-DK development board. Its screen shows the transcript “hello running big models on small chip is very fun”, a spectrogram of the utterance, and on-device timings of 133 ms for the front end and 140 ms for the NPU.">
+          </picture>
+          <figcaption>The board transcribing live speech from its own microphone. The timings on the bottom line are measured on-device.</figcaption>
+        </figure>
+        <div class="featured-body">
+          <p class="kicker">Featured · On-device speech recognition</p>
+          <h3 id="featured-title"><a href="https://github.com/LarocheC/stm32n6-stt">stm32n6-stt</a></h3>
+          <p>A push-to-talk speech captioner that runs entirely on an STM32N6570-DK: log-mel features on the Cortex-M55, a Citrinet-256 CTC encoder on the Neural-ART NPU, and the transcript on the LCD.</p>
+          <dl class="stats">
+            <div><dt>encoder on the NPU</dt><dd>124 ms</dd></div>
+            <div><dt>of audio per window</dt><dd>8 s</dd></div>
+            <div><dt>WER cost of int8</dt><dd>+0.5 pt</dd></div>
+          </dl>
+          <a class="more" href="https://github.com/LarocheC/stm32n6-stt">Read the build log <span aria-hidden="true">↗</span></a>
+        </div>
+      </article>
+
+      <div class="themes">
+        <section class="theme" aria-labelledby="theme-se">
+          <div class="theme-head">
+            <h3 id="theme-se">Speech enhancement on the edge</h3>
+            <p>Causal, streaming denoisers sized for hearing and audio devices.</p>
+          </div>
+          <ul class="projects">
+            <li class="project">
+              <h4><a href="https://github.com/LarocheC/eco8-neaixt">eco8-neaixt</a></h4>
+              <p>Compact, streamable speech-enhancement models — NSNet2, ConvFSENet and LiSenNet — for the EU <a href="https://neaixt.eu/">NeAIxt</a> edge-AI project: ONNX export, int8 quantization, and quality and runtime benchmarks on NXP RT595 and STM32N6.</p>
+              <ul class="meta"><li>C · Python</li><li>MIT</li><li>★ 3</li></ul>
+              <p class="extra">
+                <a href="https://huggingface.co/claroche1/convfsenet">ConvFSENet on Hugging Face <span aria-hidden="true">↗</span></a>
+                <a href="https://huggingface.co/claroche1/LiSenNet">LiSenNet on Hugging Face <span aria-hidden="true">↗</span></a>
+              </p>
+            </li>
+          </ul>
+        </section>
+
+        <section class="theme" aria-labelledby="theme-q">
+          <div class="theme-head">
+            <h3 id="theme-q">Quantization &amp; structured matrices</h3>
+            <p>Cheaper weights: fewer bits, fewer parameters, same quality.</p>
+          </div>
+          <ul class="projects">
+            <li class="project">
+              <h4><a href="https://github.com/LarocheC/gru-qat">gru-qat</a></h4>
+              <p>Quantization-aware training and quantized inference for GRUs: a hand-unrolled cell where every quantizer is swappable, optional structured hidden weights (block-diagonal, Monarch, butterfly), and persistent Triton kernels.</p>
+              <ul class="meta"><li class="hl">int8 / int4</li><li>Python · Triton</li><li>MIT</li><li>★ 2</li><li><code>pip install gru-qat</code></li></ul>
+            </li>
+            <li class="project">
+              <h4><a href="https://github.com/LarocheC/torch-structured">torch-structured</a></h4>
+              <p>A PyTorch library of structured-matrix layers — butterfly transforms (FFT, DCT, Hadamard), low-displacement-rank layers and Monarch matrices — as drop-in replacements for dense layers, with a Triton GPU backend.</p>
+              <ul class="meta"><li>Python · Triton · CUDA</li><li>Apache-2.0</li><li><code>pip install torch-structured</code></li></ul>
+            </li>
+          </ul>
+        </section>
+
+        <section class="theme" aria-labelledby="theme-edge">
+          <div class="theme-head">
+            <h3 id="theme-edge">Embedded inference</h3>
+            <p>Getting models onto real silicon — and writing down what breaks.</p>
+          </div>
+          <ul class="projects">
+            <li class="project">
+              <h4><a href="https://github.com/LarocheC/stm32n6-deployment-zoo">stm32n6-deployment-zoo</a></h4>
+              <p>Pushes arbitrary Hugging Face models at an STM32N6570-DK and records, reproducibly, which ones survive, how fast they run, and which toolchain limitation stopped the rest. The failure atlas is the product.</p>
+              <ul class="meta"><li>Python</li><li>STM32N6 · Neural-ART NPU</li></ul>
+            </li>
+            <li class="project">
+              <p class="note">See also <a href="#featured-title">stm32n6-stt</a>, featured above.</p>
+            </li>
+          </ul>
+        </section>
+
+        <section class="theme" aria-labelledby="theme-sqa">
+          <div class="theme-head">
+            <h3 id="theme-sqa">Measuring speech quality</h3>
+            <p>Perceptual metrics fast enough to train with — or smart enough to explain themselves.</p>
+          </div>
+          <ul class="projects">
+            <li class="project">
+              <h4><a href="https://github.com/LarocheC/triton-pesq">triton-pesq</a></h4>
+              <p>A Triton GPU backend for the PESQ loss, built on <a href="https://github.com/audiolabs/torch-pesq">audiolabs/torch-pesq</a>: every stage, forward and backward, is a Triton kernel.</p>
+              <ul class="meta"><li class="hl">60× faster forward</li><li class="hl">up to 181× forward + backward</li><li>Python · Triton</li></ul>
+            </li>
+            <li class="project">
+              <h4><a href="https://github.com/LarocheC/dnsmos_exported">dnsmos_exported</a></h4>
+              <p>A trainable PyTorch re-implementation of Microsoft’s DNSMOS P.835, exported to ONNX — including a fused forward + backward graph that turns DNSMOS into a differentiable loss you can run on the STM32N6.</p>
+              <ul class="meta"><li>ONNX · int8</li><li>Python</li></ul>
+            </li>
+            <li class="project">
+              <h4><a href="https://github.com/LarocheC/llm-sqa">llm-sqa</a></h4>
+              <p>Turns the SALMONN audio LLM into a speech-quality rater that describes what’s wrong with a recording. Two-stage LoRA fine-tuning on degradations with known parameters makes it calibrated instead of lenient.</p>
+              <ul class="meta"><li class="hl">63 distinct MOS values (was 5)</li><li>Python · LoRA</li></ul>
+              <p class="extra">
+                <a href="https://huggingface.co/claroche1/salmonn-sqa-planb-v3">Model on Hugging Face <span aria-hidden="true">↗</span></a>
+                <a href="https://huggingface.co/datasets/claroche1/sqa-degraded">SQA-Degraded dataset <span aria-hidden="true">↗</span></a>
+              </p>
+            </li>
+          </ul>
+        </section>
+      </div>
+
+      <p class="also">
+        Also on GitHub:
+        <a href="https://github.com/LarocheC/julius-tf">julius-tf</a> (differentiable resampling and FFT convolutions for TensorFlow, a port of julius) and
+        <a href="https://github.com/LarocheC/SPNMF">SPNMF</a> (structured projective NMF for harmonic/percussive separation). <a href="https://github.com/LarocheC?tab=repositories">All repositories <span aria-hidden="true">↗</span></a>
+      </p>
+    </div>
+  </section>
+
+  <!-- ======================= Publications ======================= -->
+  <section class="section" id="publications" aria-labelledby="pubs-title">
+    <div class="wrap">
+      <header class="section-head">
+        <p class="section-num">03</p>
+        <h2 class="section-title" id="pubs-title">Publications</h2>
+        <p class="section-sub">Selected papers. The complete list is on Google Scholar.</p>
+      </header>
+      <ol class="pubs">
+        <li class="pub">
+          <span class="pub-year">2016</span>
+          <div>
+            <p class="pub-title">Genre specific dictionaries for harmonic/percussive source separation</p>
+            <p class="pub-authors"><b>C. Laroche</b>, H. Papadopoulos, M. Kowalski, G. Richard</p>
+            <p class="pub-venue">International Society for Music Information Retrieval Conference (ISMIR), 2016</p>
+          </div>
+        </li>
+        <li class="pub">
+          <span class="pub-year">2015</span>
+          <div>
+            <p class="pub-title">A structured nonnegative matrix factorization for source separation</p>
+            <p class="pub-authors"><b>C. Laroche</b>, M. Kowalski, H. Papadopoulos, G. Richard</p>
+            <p class="pub-venue">European Signal Processing Conference (EUSIPCO), 2015</p>
+            <p class="pub-links"><a href="https://github.com/LarocheC/SPNMF">Code (Python) <span aria-hidden="true">↗</span></a></p>
+          </div>
+        </li>
+      </ol>
+      <p class="pubs-more"><a class="more" href="https://scholar.google.com/citations?user=jn-pQdUAAAAJ">All publications on Google Scholar <span aria-hidden="true">↗</span></a></p>
+    </div>
+  </section>
+
+  <!-- ======================= Contact ======================= -->
+  <section class="section" id="contact" aria-labelledby="contact-title">
+    <div class="wrap">
+      <header class="section-head">
+        <p class="section-num">04</p>
+        <h2 class="section-title" id="contact-title">Get in touch</h2>
+      </header>
+      <p class="contact-lede">Always glad to talk about efficient audio ML, embedded inference and speech quality — research collaborations, questions about the code, or a problem you think a very small model should solve.</p>
+      <ul class="contact-links">
+        <li><a href="https://www.linkedin.com/in/clement-laroche-91944a132/">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3.5"/><path d="M8 10.5V16M8 7.8v.01M12 16v-5.5M12 13.2c0-1.6 1-2.7 2.3-2.7s2.2 1 2.2 2.7V16"/></svg>
+          <span><span class="label">LinkedIn</span><span class="handle">in/clement-laroche-91944a132</span></span>
+          <span class="arrow" aria-hidden="true">↗</span></a></li>
+        <li><a href="https://scholar.google.com/citations?user=jn-pQdUAAAAJ">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 9 12 4l9.5 5-9.5 5-9.5-5Z"/><path d="M6.5 11.3v4.4c1.4 1.5 3.3 2.3 5.5 2.3s4.1-.8 5.5-2.3v-4.4"/><path d="M21.5 9v5"/></svg>
+          <span><span class="label">Google Scholar</span><span class="handle">Publications &amp; citations</span></span>
+          <span class="arrow" aria-hidden="true">↗</span></a></li>
+        <li><a href="https://github.com/LarocheC">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.4 5.4 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65S8.93 17.38 9 18v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
+          <span><span class="label">GitHub</span><span class="handle">@LarocheC</span></span>
+          <span class="arrow" aria-hidden="true">↗</span></a></li>
+        <li><a href="https://huggingface.co/claroche1">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8.3 14.2c.9 1.5 2.2 2.3 3.7 2.3s2.8-.8 3.7-2.3"/><path d="M9 9.6v.6M15 9.6v.6"/></svg>
+          <span><span class="label">Hugging Face</span><span class="handle">claroche1 · models &amp; datasets</span></span>
+          <span class="arrow" aria-hidden="true">↗</span></a></li>
+      </ul>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <p>© 2026 Clément Laroche</p>
+    <p>Plain HTML &amp; CSS. No trackers, no cookies.</p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+  var root = document.documentElement;
+  var darkQuery = window.matchMedia('(prefers-color-scheme: dark)');
+
+  /* ---------- Theme toggle ---------- */
+  var toggle = document.querySelector('.theme-toggle');
+  function currentTheme() {
+    return root.getAttribute('data-theme') || (darkQuery.matches ? 'dark' : 'light');
+  }
+  function syncThemeUI() {
+    var dark = currentTheme() === 'dark';
+    toggle.setAttribute('aria-pressed', dark ? 'true' : 'false');
+    var bg = getComputedStyle(root).getPropertyValue('--bg').trim();
+    if (root.hasAttribute('data-theme')) {
+      document.querySelectorAll('meta[name="theme-color"]').forEach(function (m) { m.setAttribute('content', bg); });
+    }
+    document.dispatchEvent(new CustomEvent('themechange'));
+  }
+  toggle.addEventListener('click', function () {
+    var next = currentTheme() === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    try { localStorage.setItem('theme', next); } catch (e) { /* not persisted */ }
+    syncThemeUI();
+  });
+  darkQuery.addEventListener('change', syncThemeUI);
+  syncThemeUI();
+
+  /* ---------- Header border once the page scrolls ---------- */
+  var header = document.getElementById('site-header');
+  function onScroll() { header.classList.toggle('is-scrolled', window.scrollY > 8); }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+
+  /* ---------- Highlight the section currently in view ---------- */
+  var navLinks = Array.prototype.slice.call(document.querySelectorAll('.site-nav a[href^="#"]'));
+  if ('IntersectionObserver' in window && navLinks.length) {
+    var byId = {};
+    navLinks.forEach(function (a) { byId[a.getAttribute('href').slice(1)] = a; });
+    var sectionObserver = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        navLinks.forEach(function (a) { a.classList.remove('is-active'); });
+        var link = byId[entry.target.id];
+        if (link) link.classList.add('is-active');
+      });
+    }, { rootMargin: '-40% 0px -55% 0px' });
+    Object.keys(byId).forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) sectionObserver.observe(el);
+    });
+  }
+
+  /* ---------- Signal strip: noisy speech streams through an "NPU" and comes out clean ---------- */
+  var canvas = document.getElementById('signal');
+  var button = document.getElementById('signal-toggle');
+  if (!canvas || !canvas.getContext) return;
+  var ctx = canvas.getContext('2d');
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  function prng(seed) { // mulberry32: deterministic, so the strip looks the same on every visit
+    return function () {
+      seed = (seed + 0x6D2B79F5) | 0;
+      var t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  // A looping, speech-like amplitude envelope: syllables, short dips inside words, longer pauses between them.
+  var LEN = 720;
+  var clean = new Float32Array(LEN);
+  var noisy = new Float32Array(LEN);
+  (function buildSignal() {
+    var r = prng(7), i = 4;
+    while (i < LEN - 14) {
+      var syllables = 1 + Math.floor(r() * 3);
+      for (var s = 0; s < syllables && i < LEN - 14; s++) {
+        var len = 4 + Math.floor(r() * 9), peak = 0.38 + r() * 0.62;
+        for (var k = 0; k < len && i < LEN - 14; k++, i++) {
+          var x = (k + 0.5) / len;
+          clean[i] = peak * Math.pow(Math.sin(Math.PI * x), 0.75) * (0.8 + 0.2 * r());
+        }
+        i += 1 + Math.floor(r() * 2);
+      }
+      i += 3 + Math.floor(r() * 8);
+    }
+    var rn = prng(23);
+    for (var j = 0; j < LEN; j++) {
+      var n = 0.15 + 0.22 * rn();
+      noisy[j] = Math.min(1, Math.sqrt(clean[j] * clean[j] + n * n));
+    }
+  })();
+
+  var PITCH = 6, BAR = 3, SPEED = 5.5; // px between bars, bar width, bars per second
+  var colors = {};
+  function readColors() {
+    var cs = getComputedStyle(root);
+    ['--accent', '--ink-2', '--ink-3', '--surface', '--font-mono'].forEach(function (v) {
+      colors[v] = cs.getPropertyValue(v).trim();
+    });
+  }
+
+  function roundedRect(x, y, w, h, r) {
+    r = Math.min(r, w / 2, h / 2);
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  var width = 0, height = 0, offset = 0;
+  function draw() {
+    if (!width) return;
+    ctx.clearRect(0, 0, width, height);
+    var mid = height / 2, maxH = height - 12;
+    var chipW = Math.min(66, Math.max(48, width * 0.12)), chipH = Math.min(40, height * 0.5);
+    var cx = Math.round(width / 2), gapL = cx - chipW / 2 - 8, gapR = cx + chipW / 2 + 8;
+    var base = Math.floor(offset), frac = offset - base;
+    var count = Math.ceil(width / PITCH) + 2;
+
+    for (var j = -1; j < count; j++) {
+      var x = (j + frac) * PITCH;
+      if (x + BAR > gapL && x < gapR) continue; // leave room around the chip
+      var k = (((base - j) % LEN) + LEN) % LEN;
+      var out = x >= cx;
+      var h = Math.max(2, (out ? clean[k] : noisy[k]) * maxH);
+      ctx.globalAlpha = out ? 1 : 0.5;
+      ctx.fillStyle = out ? colors['--accent'] : colors['--ink-3'];
+      roundedRect(x, mid - h / 2, BAR, h, BAR / 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+
+    // The chip: pins, body, label.
+    var x0 = cx - chipW / 2, y0 = mid - chipH / 2;
+    ctx.strokeStyle = colors['--ink-2'];
+    ctx.lineWidth = 1.5;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    for (var p = 1; p <= 5; p++) {
+      var px = Math.round(x0 + (chipW * p) / 6) + 0.5;
+      ctx.moveTo(px, y0 - 5); ctx.lineTo(px, y0);
+      ctx.moveTo(px, y0 + chipH); ctx.lineTo(px, y0 + chipH + 5);
+    }
+    ctx.stroke();
+    roundedRect(x0, y0, chipW, chipH, 6);
+    ctx.fillStyle = colors['--surface'];
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = colors['--ink-2'];
+    ctx.beginPath();
+    ctx.arc(x0 + 7, y0 + 7, 1.6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.font = '600 10px ' + colors['--font-mono'];
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('NPU', cx, mid + 0.5);
+  }
+
+  // Choose a starting point where both halves of the strip show speech at the current width —
+  // this is the only frame visitors who prefer reduced motion will see.
+  function bestOffset() {
+    var count = Math.ceil(width / PITCH), half = count / 2, best = 0, bestScore = -1;
+    for (var o = 0; o < LEN; o++) {
+      var left = 0, right = 0;
+      for (var j = 0; j < count; j++) {
+        var v = clean[(((o - j) % LEN) + LEN) % LEN];
+        if (j < half) left += v; else right += v;
+      }
+      if (Math.min(left, right) > bestScore) { bestScore = Math.min(left, right); best = o; }
+    }
+    return best;
+  }
+
+  var placed = false;
+  function resize() {
+    var rect = canvas.getBoundingClientRect();
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    width = rect.width; height = rect.height;
+    canvas.width = Math.round(width * dpr);
+    canvas.height = Math.round(height * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    if (width && (!placed || reduceMotion.matches)) { offset = bestOffset(); placed = true; }
+    draw();
+  }
+
+  var running = false, userPaused = false, onScreen = true, last = 0, rafId = 0;
+  function frame(t) {
+    if (!running) return;
+    var dt = last ? Math.min(0.05, (t - last) / 1000) : 0;
+    last = t;
+    offset = (offset + dt * SPEED) % LEN;
+    draw();
+    rafId = requestAnimationFrame(frame);
+  }
+  function update() {
+    var shouldRun = !userPaused && onScreen && !reduceMotion.matches && !document.hidden;
+    if (shouldRun && !running) { running = true; last = 0; rafId = requestAnimationFrame(frame); }
+    else if (!shouldRun && running) { running = false; cancelAnimationFrame(rafId); }
+  }
+
+  button.addEventListener('click', function () {
+    userPaused = !userPaused;
+    button.textContent = userPaused ? 'Play' : 'Pause';
+    button.setAttribute('aria-label', userPaused ? 'Play animation' : 'Pause animation');
+    update();
+  });
+  document.addEventListener('visibilitychange', update);
+  reduceMotion.addEventListener('change', update);
+  document.addEventListener('themechange', function () { readColors(); draw(); });
+
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(function (entries) {
+      onScreen = entries[0].isIntersecting;
+      update();
+    }).observe(canvas);
+  }
+  if ('ResizeObserver' in window) new ResizeObserver(resize).observe(canvas);
+  else window.addEventListener('resize', resize);
+
+  readColors();
+  resize();
+  update();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(draw);
+})();
+</script>
+</body>
+</html>
