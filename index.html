@@ -245,11 +245,34 @@
   .js .signal { display: block; }
   .signal canvas { display: block; width: 100%; height: 84px; }
   @media (max-width: 639px) { .signal canvas { height: 72px; } }
-  .signal figcaption {
-    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  .signal-bar {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem 1rem;
     margin-top: 0.7rem;
+  }
+  .signal-end, .listen-label {
     font: 500 0.6875rem/1.4 var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3);
   }
+  .listen { display: inline-flex; align-items: center; gap: 0.45rem; }
+  .listen[hidden] { display: none; }
+  .listen-label { margin-right: 0.2rem; }
+  .listen-btn {
+    display: inline-flex; align-items: center; gap: 0.45rem;
+    padding: 0.4rem 0.85rem 0.4rem 0.7rem; border-radius: 999px;
+    border: 1px solid var(--rule); background: var(--surface); color: var(--ink);
+    font: 500 0.875rem/1.2 var(--font-sans); cursor: pointer;
+    transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+  }
+  .listen-btn:hover { border-color: var(--ink-3); }
+  .listen-btn:disabled { cursor: progress; opacity: 0.65; }
+  .listen-btn svg { width: 12px; height: 12px; flex: none; }
+  .listen-btn .i-stop { display: none; }
+  .listen-btn[aria-pressed="true"] { background: var(--ink-2); border-color: var(--ink-2); color: var(--bg); }
+  .listen-btn[data-track="enhanced"][aria-pressed="true"] { background: var(--accent); border-color: var(--accent); }
+  .listen-btn[aria-pressed="true"] .i-play { display: none; }
+  .listen-btn[aria-pressed="true"] .i-stop { display: block; }
+  @media (max-width: 639px) { .listen { order: 3; width: 100%; justify-content: center; } }
+  .signal-note { margin: 1rem 0 0; max-width: 48rem; font-size: 0.8125rem; line-height: 1.55; color: var(--ink-3); }
+  .signal-note a { color: inherit; }
   /* The strip itself is the control: click (or Enter/Space) freezes or resumes the motion. */
   .signal-stage {
     display: block; width: 100%; margin: 0; padding: 0; border: 0; border-radius: 8px;
@@ -372,17 +395,6 @@
     border: 1px solid var(--rule); border-radius: 999px;
     font: 500 0.6875rem/1.6 var(--font-mono); letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-3);
   }
-  .pubs-older summary {
-    display: inline-flex; align-items: center; gap: 0.45rem; margin-top: 1.25rem;
-    color: var(--accent); font-weight: 550; cursor: pointer; list-style: none;
-  }
-  .pubs-older summary::-webkit-details-marker { display: none; }
-  .pubs-older summary::after { content: "↓"; content: "↓" / ""; font-family: var(--font-mono); }
-  .pubs-older[open] summary { margin-bottom: 1.25rem; }
-  .pubs-older[open] summary::after { content: "↑"; content: "↑" / ""; }
-  .pubs-older .when-open, .pubs-older[open] .when-closed { display: none; }
-  .pubs-older[open] .when-open { display: inline; }
-  .pubs-older summary:hover { text-decoration: underline; text-underline-offset: 0.2em; }
   .pubs-note { margin: 1.75rem 0 0; max-width: 44rem; color: var(--ink-2); }
   .pubs-more { margin: 0.9rem 0 0; }
 
@@ -477,9 +489,26 @@
         <button class="signal-stage" id="signal-stage" type="button" aria-label="Freeze the waveform animation" aria-pressed="false">
           <canvas id="signal"></canvas>
         </button>
-        <figcaption>
-          <span>Noisy in</span>
-          <span>Enhanced out</span>
+        <div class="signal-bar">
+          <span class="signal-end">Noisy in</span>
+          <div class="listen" role="group" aria-label="Listen to a before and after sample">
+            <span class="listen-label" id="listen-label">Listen</span>
+            <button class="listen-btn" type="button" data-track="noisy" aria-pressed="false">
+              <svg class="i-play" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 1.9v8.2c0 .55.6.88 1.06.58l6.3-4.1a.7.7 0 0 0 0-1.16l-6.3-4.1C3.6 1.02 3 1.35 3 1.9Z" fill="currentColor"/></svg>
+              <svg class="i-stop" viewBox="0 0 12 12" aria-hidden="true"><rect x="2.5" y="2.5" width="7" height="7" rx="1.3" fill="currentColor"/></svg>
+              Noisy
+            </button>
+            <button class="listen-btn" type="button" data-track="enhanced" aria-pressed="false">
+              <svg class="i-play" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 1.9v8.2c0 .55.6.88 1.06.58l6.3-4.1a.7.7 0 0 0 0-1.16l-6.3-4.1C3.6 1.02 3 1.35 3 1.9Z" fill="currentColor"/></svg>
+              <svg class="i-stop" viewBox="0 0 12 12" aria-hidden="true"><rect x="2.5" y="2.5" width="7" height="7" rx="1.3" fill="currentColor"/></svg>
+              Enhanced
+            </button>
+          </div>
+          <span class="signal-end">Enhanced out</span>
+        </div>
+        <figcaption class="signal-note">
+          A test clip from VoiceBank-DEMAND at 1.4&nbsp;dB SNR, never seen in training, cleaned 16&nbsp;ms at a time by the int8 streaming graph of <a href="https://huggingface.co/claroche1/LiSenNet">LiSenNet</a>: 36k parameters, the same graph that runs on the STM32N6 NPU. PESQ on this clip: 1.71&nbsp;→&nbsp;3.13.
+          Audio: Valentini-Botinhao et&nbsp;al., <a href="https://huggingface.co/datasets/JacobLinCool/VoiceBank-DEMAND-16k">VoiceBank-DEMAND</a>, <a href="https://creativecommons.org/licenses/by/4.0/">CC&nbsp;BY&nbsp;4.0</a>; the enhanced version is processed by LiSenNet.
         </figcaption>
       </figure>
     </div>
@@ -699,108 +728,95 @@
             <p class="pub-venue">IEEE ICASSP 2026</p>
           </div>
         </li>
+        <li class="pub">
+          <span class="pub-year" aria-hidden="true">2025</span>
+          <div>
+            <p class="pub-title"><a href="https://arxiv.org/abs/2507.04879">Adaptive Slimming for Scalable and Efficient Speech Enhancement</a></p>
+            <p class="pub-authors">R. Miccini, M. Kim, <b>C. Laroche</b>, L. Pezzarossa, P. Smaragdis</p>
+            <p class="pub-venue">IEEE WASPAA 2025</p>
+          </div>
+        </li>
+        <li class="pub">
+          <span class="pub-year" aria-hidden="true"></span>
+          <div>
+            <p class="pub-title">Time-predictable deep noise suppression on an edge device</p>
+            <p class="pub-authors">A. Cerioli, T. B. Strøm, <b>C. Laroche</b>, T. Piechowiak, L. Pezzarossa, M. Schoeberl</p>
+            <p class="pub-venue">ISORC 2025</p>
+          </div>
+        </li>
+        <li class="pub">
+          <span class="pub-year" aria-hidden="true"></span>
+          <div>
+            <p class="pub-title"><a href="https://arxiv.org/abs/2412.17121">Scalable Speech Enhancement with Dynamic Channel Pruning</a></p>
+            <p class="pub-authors">R. Miccini, <b>C. Laroche</b>, T. Piechowiak, L. Pezzarossa</p>
+            <p class="pub-venue">IEEE ICASSP 2025</p>
+          </div>
+        </li>
+        <li class="pub">
+          <span class="pub-year" aria-hidden="true"></span>
+          <div>
+            <p class="pub-title">Neural Architecture Search for Efficient Mixed-Precision Quantization in Audio Denoising</p>
+            <p class="pub-authors">A. Cerioli, <b>C. Laroche</b>, T. Piechowiak, L. Pezzarossa, M. Schoeberl</p>
+            <p class="pub-venue">PerCom Workshops 2025</p>
+          </div>
+        </li>
+        <li class="pub">
+          <span class="pub-year" aria-hidden="true"></span>
+          <div>
+            <p class="pub-title">Efficient Streaming Speech Quality Prediction with Spiking Neural Networks</p>
+            <p class="pub-authors">M. Nilsson, R. Miccini, J. Rossbroich, <b>C. Laroche</b>, T. Piechowiak, F. Zenke</p>
+            <p class="pub-venue">Interspeech 2025</p>
+          </div>
+        </li>
+        <li class="pub">
+          <span class="pub-year" aria-hidden="true">2024</span>
+          <div>
+            <p class="pub-title">Comparing neural network architectures for non-intrusive speech quality prediction</p>
+            <p class="pub-authors">L. F. Schill, T. Piechowiak, <b>C. Laroche</b>, P. Mowlaee</p>
+            <p class="pub-venue">Speech Communication, vol. 165, 2024</p>
+          </div>
+        </li>
+        <li class="pub">
+          <span class="pub-year" aria-hidden="true"></span>
+          <div>
+            <p class="pub-title">NeuralCasting: A front-end compilation infrastructure for neural networks</p>
+            <p class="pub-authors">A. Cerioli, R. Miccini, <b>C. Laroche</b>, T. Piechowiak, L. Pezzarossa, J. Sparsø, et al.</p>
+            <p class="pub-venue">IOTSMS 2024</p>
+          </div>
+        </li>
+        <li class="pub">
+          <span class="pub-year" aria-hidden="true"></span>
+          <div>
+            <p class="pub-title"><a href="https://arxiv.org/abs/2407.04578">Resource-Efficient Speech Quality Prediction through Quantization Aware Training and Binary Activation Maps</a></p>
+            <p class="pub-authors">M. Nilsson, R. Miccini, <b>C. Laroche</b>, T. Piechowiak, F. Zenke</p>
+            <p class="pub-venue">Interspeech 2024</p>
+          </div>
+        </li>
+        <li class="pub">
+          <span class="pub-year" aria-hidden="true"></span>
+          <div>
+            <p class="pub-title"><a href="https://arxiv.org/abs/2402.12263">Towards a tailored mixed-precision sub-8-bit quantization scheme for Gated Recurrent Units using Genetic Algorithms</a></p>
+            <p class="pub-authors">R. Miccini, A. Cerioli, <b>C. Laroche</b>, T. Piechowiak, J. Sparsø, L. Pezzarossa</p>
+            <p class="pub-venue">tinyML Research Symposium 2024</p>
+          </div>
+        </li>
+        <li class="pub">
+          <span class="pub-year" aria-hidden="true">2023</span>
+          <div>
+            <p class="pub-title"><a href="https://arxiv.org/abs/2308.16678">Dynamic nsNet2: Efficient Deep Noise Suppression with Early Exiting</a></p>
+            <p class="pub-authors">R. Miccini, A. Zniber, <b>C. Laroche</b>, T. Piechowiak, M. Schoeberl, L. Pezzarossa, O. Karrakchou, J. Sparsø, M. Ghogho</p>
+            <p class="pub-venue">IEEE MLSP 2023</p>
+          </div>
+        </li>
+        <li class="pub">
+          <span class="pub-year" aria-hidden="true"></span>
+          <div>
+            <p class="pub-title"><a href="https://arxiv.org/abs/2306.01538">On Crowdsourcing-design with Comparison Category Rating for Evaluating Speech Enhancement Algorithms</a></p>
+            <p class="pub-authors">A. S. Z. Suárez, <b>C. Laroche</b>, L. H. Clemmensen, S. Das</p>
+            <p class="pub-venue">IEEE ICASSP 2023</p>
+          </div>
+        </li>
       </ol>
-      <details class="pubs-older">
-        <summary><span class="when-closed">12 more from 2023–2025</span><span class="when-open">Show fewer</span></summary>
-        <ol class="pubs">
-          <li class="pub">
-            <span class="pub-year" aria-hidden="true">2025</span>
-            <div>
-              <p class="pub-title"><a href="https://arxiv.org/abs/2507.04879">Adaptive Slimming for Scalable and Efficient Speech Enhancement</a></p>
-              <p class="pub-authors">R. Miccini, M. Kim, <b>C. Laroche</b>, L. Pezzarossa, P. Smaragdis</p>
-              <p class="pub-venue">IEEE WASPAA 2025</p>
-            </div>
-          </li>
-          <li class="pub">
-            <span class="pub-year" aria-hidden="true"></span>
-            <div>
-              <p class="pub-title">Time-predictable deep noise suppression on an edge device</p>
-              <p class="pub-authors">A. Cerioli, T. B. Strøm, <b>C. Laroche</b>, T. Piechowiak, L. Pezzarossa, M. Schoeberl</p>
-              <p class="pub-venue">ISORC 2025</p>
-            </div>
-          </li>
-          <li class="pub">
-            <span class="pub-year" aria-hidden="true"></span>
-            <div>
-              <p class="pub-title">Efficient detection of microplastics on edge devices with tailored compiler for TinyML applications</p>
-              <p class="pub-authors">A. Cerioli, L. Petrosino, D. Sasso, <b>C. Laroche</b>, T. Piechowiak, L. Pezzarossa, et al.</p>
-              <p class="pub-venue">IEEE Access, vol. 13, 2025</p>
-            </div>
-          </li>
-          <li class="pub">
-            <span class="pub-year" aria-hidden="true"></span>
-            <div>
-              <p class="pub-title"><a href="https://arxiv.org/abs/2412.17121">Scalable Speech Enhancement with Dynamic Channel Pruning</a></p>
-              <p class="pub-authors">R. Miccini, <b>C. Laroche</b>, T. Piechowiak, L. Pezzarossa</p>
-              <p class="pub-venue">IEEE ICASSP 2025</p>
-            </div>
-          </li>
-          <li class="pub">
-            <span class="pub-year" aria-hidden="true"></span>
-            <div>
-              <p class="pub-title">Neural Architecture Search for Efficient Mixed-Precision Quantization in Audio Denoising</p>
-              <p class="pub-authors">A. Cerioli, <b>C. Laroche</b>, T. Piechowiak, L. Pezzarossa, M. Schoeberl</p>
-              <p class="pub-venue">PerCom Workshops 2025</p>
-            </div>
-          </li>
-          <li class="pub">
-            <span class="pub-year" aria-hidden="true"></span>
-            <div>
-              <p class="pub-title">Efficient Streaming Speech Quality Prediction with Spiking Neural Networks</p>
-              <p class="pub-authors">M. Nilsson, R. Miccini, J. Rossbroich, <b>C. Laroche</b>, T. Piechowiak, F. Zenke</p>
-              <p class="pub-venue">Interspeech 2025</p>
-            </div>
-          </li>
-          <li class="pub">
-            <span class="pub-year" aria-hidden="true">2024</span>
-            <div>
-              <p class="pub-title">Comparing neural network architectures for non-intrusive speech quality prediction</p>
-              <p class="pub-authors">L. F. Schill, T. Piechowiak, <b>C. Laroche</b>, P. Mowlaee</p>
-              <p class="pub-venue">Speech Communication, vol. 165, 2024</p>
-            </div>
-          </li>
-          <li class="pub">
-            <span class="pub-year" aria-hidden="true"></span>
-            <div>
-              <p class="pub-title">NeuralCasting: A front-end compilation infrastructure for neural networks</p>
-              <p class="pub-authors">A. Cerioli, R. Miccini, <b>C. Laroche</b>, T. Piechowiak, L. Pezzarossa, J. Sparsø, et al.</p>
-              <p class="pub-venue">IOTSMS 2024</p>
-            </div>
-          </li>
-          <li class="pub">
-            <span class="pub-year" aria-hidden="true"></span>
-            <div>
-              <p class="pub-title"><a href="https://arxiv.org/abs/2407.04578">Resource-Efficient Speech Quality Prediction through Quantization Aware Training and Binary Activation Maps</a></p>
-              <p class="pub-authors">M. Nilsson, R. Miccini, <b>C. Laroche</b>, T. Piechowiak, F. Zenke</p>
-              <p class="pub-venue">Interspeech 2024</p>
-            </div>
-          </li>
-          <li class="pub">
-            <span class="pub-year" aria-hidden="true"></span>
-            <div>
-              <p class="pub-title"><a href="https://arxiv.org/abs/2402.12263">Towards a tailored mixed-precision sub-8-bit quantization scheme for Gated Recurrent Units using Genetic Algorithms</a></p>
-              <p class="pub-authors">R. Miccini, A. Cerioli, <b>C. Laroche</b>, T. Piechowiak, J. Sparsø, L. Pezzarossa</p>
-              <p class="pub-venue">tinyML Research Symposium 2024</p>
-            </div>
-          </li>
-          <li class="pub">
-            <span class="pub-year" aria-hidden="true">2023</span>
-            <div>
-              <p class="pub-title"><a href="https://arxiv.org/abs/2308.16678">Dynamic nsNet2: Efficient Deep Noise Suppression with Early Exiting</a></p>
-              <p class="pub-authors">R. Miccini, A. Zniber, <b>C. Laroche</b>, T. Piechowiak, M. Schoeberl, L. Pezzarossa, O. Karrakchou, J. Sparsø, M. Ghogho</p>
-              <p class="pub-venue">IEEE MLSP 2023</p>
-            </div>
-          </li>
-          <li class="pub">
-            <span class="pub-year" aria-hidden="true"></span>
-            <div>
-              <p class="pub-title"><a href="https://arxiv.org/abs/2306.01538">On Crowdsourcing-design with Comparison Category Rating for Evaluating Speech Enhancement Algorithms</a></p>
-              <p class="pub-authors">A. S. Z. Suárez, <b>C. Laroche</b>, L. H. Clemmensen, S. Das</p>
-              <p class="pub-venue">IEEE ICASSP 2023</p>
-            </div>
-          </li>
-        </ol>
-      </details>
       <p class="pubs-note">I’m also a named inventor on several granted US patents on audio devices, covering speakerphone acoustics, ultrasound movement detection and uncertainty quantification.</p>
       <p class="pubs-more"><a class="more" href="https://scholar.google.com/citations?user=jn-pQdUAAAAJ">All publications and patents on Google Scholar <span aria-hidden="true">↗</span></a></p>
     </div>
@@ -966,19 +982,31 @@
     var mid = height / 2, maxH = height - 12;
     var chipW = Math.min(66, Math.max(48, width * 0.12)), chipH = Math.min(40, height * 0.5);
     var cx = Math.round(width / 2), gapL = cx - chipW / 2 - 8, gapR = cx + chipW / 2 + 8;
-    var base = Math.floor(offset), frac = offset - base;
-    var count = Math.ceil(width / PITCH) + 2;
-
-    for (var j = -1; j < count; j++) {
-      var x = (j + frac) * PITCH;
-      if (x + BAR > gapL && x < gapR) continue; // leave room around the chip
-      var k = (((base - j) % LEN) + LEN) % LEN;
-      var out = x >= cx;
-      var h = Math.max(2, (out ? clean[k] : noisy[k]) * maxH);
-      ctx.globalAlpha = out ? 1 : 0.5;
-      ctx.fillStyle = out ? colors['--accent'] : colors['--ink-3'];
+    // One bar: left edge x, height v in [0, 1], out = right of the chip (the model's output).
+    // While a sample plays, the side you are hearing is drawn at full strength.
+    function bar(x, v, out, hearing) {
+      if (x + BAR > gapL && x < gapR) return;               // leave room around the chip
+      var h = Math.max(2, v * maxH);
+      ctx.globalAlpha = out ? (hearing === 'noisy' ? 0.4 : 1) : (hearing === 'noisy' ? 0.9 : 0.5);
+      ctx.fillStyle = out ? colors['--accent'] : (hearing === 'noisy' ? colors['--ink-2'] : colors['--ink-3']);
       roundedRect(x, mid - h / 2, BAR, h, BAR / 2);
       ctx.fill();
+    }
+
+    if (isLive()) {
+      // The real clip: frames still to come wait left of the chip, processed frames leave on the right.
+      var env = audio.env, fNow = Math.max(0, audio.ctx.currentTime - audio.startAt) / FRAME;
+      for (var f = Math.floor(fNow - (width - cx) / PITCH) - 1; f <= Math.ceil(fNow + cx / PITCH) + 1; f++) {
+        var xc = cx - (f - fNow) * PITCH, right = xc >= cx;
+        var v = f >= 0 && f < env.frames ? (right ? env.enhanced[f] : env.noisy[f]) : 0;
+        bar(xc - BAR / 2, v, right, audio.track);
+      }
+    } else {
+      var base = Math.floor(offset), frac = offset - base, count = Math.ceil(width / PITCH) + 2;
+      for (var j = -1; j < count; j++) {
+        var x = (j + frac) * PITCH, k = (((base - j) % LEN) + LEN) % LEN, out = x >= cx;
+        bar(x, out ? clean[k] : noisy[k], out, null);
+      }
     }
     ctx.globalAlpha = 1;
 
@@ -1040,24 +1068,142 @@
     if (!running) return;
     var dt = last ? Math.min(0.05, (t - last) / 1000) : 0;
     last = t;
-    offset = (offset + dt * SPEED) % LEN;
+    if (!isLive()) offset = (offset + dt * SPEED) % LEN;   // the idle loop holds its place during playback
     draw();
     rafId = requestAnimationFrame(frame);
   }
   function update() {
-    var shouldRun = !userPaused && onScreen && !reduceMotion.matches && !document.hidden;
+    var moving = isLive() || (!userPaused && !reduceMotion.matches);
+    var shouldRun = moving && onScreen && !document.hidden;
     if (shouldRun && !running) { running = true; last = 0; rafId = requestAnimationFrame(frame); }
     else if (!shouldRun && running) { running = false; cancelAnimationFrame(rafId); }
   }
 
-  // Clicking the strip (or Enter/Space when it has focus) freezes or resumes the motion.
-  // With reduced motion the strip never moves, so the control is switched off and hidden.
+  /* ---------- Before/after player: a real clip streams through the chip ---------- */
+  var AC = window.AudioContext || window.webkitAudioContext;
+  var listenGroup = document.querySelector('.listen');
+  var listenBtns = Array.prototype.slice.call(document.querySelectorAll('.listen-btn'));
+  var listenLabel = document.getElementById('listen-label');
+  var FRAME = 0.05; // seconds of audio per bar while a sample plays
+  var audio = { ctx: null, buffers: null, env: null, loading: null, gains: null, sources: null, startAt: 0, track: null };
+
+  function isLive() { return !!(audio.track && audio.env) && !reduceMotion.matches; }
+
+  // Per-bar loudness of both versions, on one shared scale so the removed noise shows as missing height.
+  function envelopes(buffers) {
+    var hop = Math.max(1, Math.round(FRAME * buffers.noisy.sampleRate));
+    var n = Math.ceil(buffers.noisy.length / hop), peak = 1e-9, rms = {}, env = { frames: n };
+    ['noisy', 'enhanced'].forEach(function (k) {
+      var d = buffers[k].getChannelData(0), r = new Float32Array(n);
+      for (var f = 0; f < n; f++) {
+        var a = f * hop, b = Math.min(d.length, a + hop), s = 0;
+        for (var i = a; i < b; i++) s += d[i] * d[i];
+        r[f] = Math.sqrt(s / Math.max(1, b - a));
+        if (r[f] > peak) peak = r[f];
+      }
+      rms[k] = r;
+    });
+    Object.keys(rms).forEach(function (k) { // 42 dB below the loudest frame of either version maps to zero
+      env[k] = rms[k].map(function (v) { return Math.max(0, Math.min(1, 1 + 20 * Math.log10(v / peak + 1e-9) / 42)); });
+    });
+    return env;
+  }
+
+  function loadAudio() {
+    if (!audio.loading) {
+      var urls = { noisy: 'assets/audio/demo-noisy.wav', enhanced: 'assets/audio/demo-enhanced.wav' };
+      audio.loading = Promise.all(Object.keys(urls).map(function (k) {
+        return fetch(urls[k])
+          .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.arrayBuffer(); })
+          .then(function (data) { return new Promise(function (ok, fail) { audio.ctx.decodeAudioData(data, ok, fail); }); })
+          .then(function (buf) { return [k, buf]; });
+      })).then(function (pairs) {
+        audio.buffers = {};
+        pairs.forEach(function (p) { audio.buffers[p[0]] = p[1]; });
+        audio.env = envelopes(audio.buffers);
+      }, function (err) { audio.loading = null; throw err; });
+    }
+    return audio.loading;
+  }
+
+  function syncListen() {
+    listenBtns.forEach(function (b) {
+      b.setAttribute('aria-pressed', audio.track === b.getAttribute('data-track') ? 'true' : 'false');
+    });
+    syncStage();
+    update();
+    draw();
+  }
+
+  function stopAudio() {
+    (audio.sources || []).forEach(function (s) { s.onended = null; try { s.stop(); } catch (e) { /* already ended */ } });
+    audio.sources = audio.gains = null;
+    audio.track = null;
+    syncListen();
+  }
+
+  function playAudio(track) {
+    var c = audio.ctx, t0 = c.currentTime + 0.05;
+    audio.gains = {};
+    audio.sources = [];
+    ['noisy', 'enhanced'].forEach(function (k) { // both versions run in lockstep; the gains pick the one you hear
+      var src = c.createBufferSource(), gain = c.createGain();
+      src.buffer = audio.buffers[k];
+      gain.gain.value = k === track ? 1 : 0;
+      src.connect(gain);
+      gain.connect(c.destination);
+      src.start(t0);
+      audio.gains[k] = gain;
+      audio.sources.push(src);
+    });
+    audio.sources[0].onended = stopAudio;
+    audio.startAt = t0;
+    audio.track = track;
+    syncListen();
+  }
+
+  function switchTrack(track) {
+    var now = audio.ctx.currentTime;
+    Object.keys(audio.gains).forEach(function (k) {
+      var g = audio.gains[k].gain;
+      g.cancelScheduledValues(now);
+      g.setValueAtTime(g.value, now);
+      g.linearRampToValueAtTime(k === track ? 1 : 0, now + 0.03); // 30 ms crossfade: no click
+    });
+    audio.track = track;
+    syncListen();
+  }
+
+  if (!AC || !window.fetch || !window.Promise) {
+    listenGroup.hidden = true;
+  } else {
+    listenBtns.forEach(function (b) {
+      b.addEventListener('click', function () {
+        var track = b.getAttribute('data-track');
+        if (audio.track === track) { stopAudio(); return; }   // pressing the version that is playing stops it
+        if (audio.track) { switchTrack(track); return; }      // A/B: switch at the same moment in the clip
+        if (!audio.ctx) {
+          try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) { /* older Safari */ }
+          audio.ctx = new AC();
+        }
+        audio.ctx.resume(); // must happen inside the click (browser autoplay rules)
+        listenBtns.forEach(function (x) { x.disabled = true; });
+        loadAudio().then(function () { playAudio(track); }, function () {
+          listenLabel.textContent = 'Audio unavailable';
+        }).then(function () { listenBtns.forEach(function (x) { x.disabled = false; }); });
+      });
+    });
+  }
+
+  // Clicking the strip (or Enter/Space when it has focus) freezes or resumes the idle motion.
+  // With reduced motion the strip never moves, so the control is switched off and hidden;
+  // while a sample plays, the Listen buttons are the control instead.
   function syncStage() {
     var still = reduceMotion.matches;
-    stage.disabled = still;
+    stage.disabled = still || !!audio.track;
     if (still) stage.setAttribute('aria-hidden', 'true'); else stage.removeAttribute('aria-hidden');
     stage.setAttribute('aria-pressed', userPaused ? 'true' : 'false');
-    stage.title = still ? '' : (userPaused ? 'Click to resume the animation' : 'Click to freeze the animation');
+    stage.title = still || audio.track ? '' : (userPaused ? 'Click to resume the animation' : 'Click to freeze the animation');
   }
   stage.addEventListener('click', function () {
     userPaused = !userPaused;
