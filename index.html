@@ -507,7 +507,7 @@
           <span class="signal-end">Enhanced out</span>
         </div>
         <figcaption class="signal-note">
-          A test clip from VoiceBank-DEMAND at 1.4&nbsp;dB SNR, never seen in training, cleaned 16&nbsp;ms at a time by the int8 streaming graph of <a href="https://huggingface.co/claroche1/LiSenNet">LiSenNet</a>: 36k parameters, the same graph that runs on the STM32N6 NPU. PESQ on this clip: 1.71&nbsp;→&nbsp;3.13.
+          A very noisy test clip from VoiceBank-DEMAND (1.7&nbsp;dB SNR), never seen in training, cleaned 16&nbsp;ms at a time by the int8 streaming graph of <a href="https://huggingface.co/claroche1/LiSenNet">LiSenNet</a>: 36k parameters, the same graph that runs on the STM32N6 NPU. DNSMOS on this clip: overall quality 1.26&nbsp;→&nbsp;3.06, background noise 1.27&nbsp;→&nbsp;3.93 (PESQ 1.11&nbsp;→&nbsp;1.68).
           Audio: Valentini-Botinhao et&nbsp;al., <a href="https://huggingface.co/datasets/JacobLinCool/VoiceBank-DEMAND-16k">VoiceBank-DEMAND</a>, <a href="https://creativecommons.org/licenses/by/4.0/">CC&nbsp;BY&nbsp;4.0</a>; the enhanced version is processed by LiSenNet.
         </figcaption>
       </figure>
