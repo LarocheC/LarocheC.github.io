@@ -27,11 +27,11 @@ Everything is plain HTML in `index.html`, in page order: hero, About, Selected w
 
 - **Text**: edit it in place.
 - **A project**: copy an existing `<li class="project">` block inside the matching theme.
-- **A publication**: copy an `<li class="pub">` block.
+- **A publication**: copy an `<li class="pub">` block. Put the year only on the first entry of each year. The newest year is always visible; entries inside `<details class="pubs-older">` stay folded until a visitor expands them, so update its "N more from …" label when you add or move papers.
 - **Colours**: the tokens at the top of the `<style>` block (`--accent`, `--bg`, …), defined once for light and once for dark.
 - **Social preview card** (`assets/img/og-card.png`): a static image of the name, tagline, portrait and waveform. Regenerate it if any of those change.
 
-The page follows the visitor's light/dark preference and remembers a manual choice (in `localStorage`). The waveform animation pauses when off-screen, has a pause button, and is static for visitors who prefer reduced motion. Without JavaScript, the animation and theme button are simply hidden.
+The page follows the visitor's light/dark preference and remembers a manual choice (in `localStorage`). The waveform animation pauses when off-screen, freezes or resumes when clicked (or with Enter/Space when focused), and is static for visitors who prefer reduced motion. Without JavaScript, the animation and theme button are simply hidden.
 
 ## Going live
 
