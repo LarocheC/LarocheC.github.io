@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clément Laroche — LarocheC</title>
+<meta name="description" content="Clément Laroche (LarocheC) — Lead Research Scientist at Jabra (GN Audio), Copenhagen. Machine learning and DSP for audio: speech enhancement, source separation, on-device neural inference.">
+<style>
+  :root {
+    --bg: #fafafa;
+    --card: #ffffff;
+    --text: #1c1e21;
+    --muted: #5f6b7a;
+    --accent: #0e7c66;
+    --accent-soft: #e6f4f1;
+    --border: #e4e7eb;
+    --code: #24292f;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 0 24px; }
+
+  header {
+    position: sticky; top: 0; z-index: 10;
+    background: rgba(250, 250, 250, 0.9);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+  }
+  nav { display: flex; justify-content: space-between; align-items: center; height: 56px; }
+  nav .brand { font-weight: 700; color: var(--text); }
+  nav .brand:hover { text-decoration: none; color: var(--accent); }
+  nav ul { display: flex; gap: 20px; list-style: none; }
+  nav ul a { color: var(--muted); font-size: 14px; }
+  nav ul a:hover { color: var(--accent); text-decoration: none; }
+
+  .hero {
+    display: flex; align-items: center; gap: 28px;
+    padding: 64px 0 40px; flex-wrap: wrap;
+  }
+  .hero img.avatar {
+    width: 128px; height: 128px; border-radius: 50%;
+    border: 3px solid var(--card);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+  }
+  .hero h1 { font-size: 34px; line-height: 1.2; }
+  .hero h1 span { color: var(--muted); font-weight: 500; font-size: 22px; }
+  .hero p.tagline { color: var(--muted); max-width: 60ch; margin-top: 8px; font-size: 17px; }
+  .badges { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--accent-soft); color: var(--accent);
+    border-radius: 999px; padding: 4px 12px; font-size: 13px; font-weight: 600;
+  }
+
+  section { padding: 36px 0; }
+  h2 {
+    font-size: 22px; margin-bottom: 18px;
+    padding-bottom: 8px; border-bottom: 2px solid var(--accent-soft);
+  }
+  h2 .anchor { color: var(--muted); font-weight: 400; font-size: 14px; margin-left: 8px; }
+
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 18px; display: flex; flex-direction: column; gap: 8px;
+    transition: box-shadow 0.15s ease, transform 0.15s ease;
+  }
+  .card:hover { box-shadow: 0 6px 20px rgba(0,0,0,0.08); transform: translateY(-2px); text-decoration: none; }
+  .card h3 { font-size: 16px; color: var(--text); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .card h3 a { color: var(--text); }
+  .card:hover h3 a { color: var(--accent); text-decoration: none; }
+  .card p { color: var(--muted); font-size: 14px; flex: 1; }
+  .card .meta { display: flex; gap: 14px; font-size: 12.5px; color: var(--muted); align-items: center; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+
+  .stats { display: grid; grid-template-columns: 1fr; gap: 16px; }
+  .stats img { width: 100%; border-radius: 12px; border: 1px solid var(--border); background: var(--card); }
+  .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 720px) { .stats-row { grid-template-columns: 1fr; } }
+
+  .links { display: flex; gap: 12px; flex-wrap: wrap; }
+  .links a {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 10px 16px; color: var(--text); font-size: 14.5px; font-weight: 500;
+  }
+  .links a:hover { border-color: var(--accent); color: var(--accent); text-decoration: none; }
+  .links svg { width: 18px; height: 18px; fill: currentColor; }
+
+  footer {
+    border-top: 1px solid var(--border); margin-top: 32px;
+    padding: 24px 0 48px; color: var(--muted); font-size: 13.5px;
+    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <nav>
+      <a class="brand" href="#top">LarocheC</a>
+      <ul>
+        <li><a href="#about">About</a></li>
+        <li><a href="#stats">GitHub stats</a></li>
+        <li><a href="#projects">Projects</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap" id="top">
+
+  <div class="hero">
+    <img class="avatar" src="https://avatars.githubusercontent.com/u/14241885?v=4" alt="Clément Laroche's GitHub avatar">
+    <div>
+      <h1>Clément Laroche <span>@LarocheC</span></h1>
+      <p class="tagline">
+        Lead Research Scientist at Jabra (GN Audio), Copenhagen. I work on machine learning
+        and digital signal processing for audio — speech enhancement, source separation,
+        and running neural networks on resource-constrained devices.
+      </p>
+      <div class="badges">
+        <span class="badge">🎧 Audio ML &amp; DSP</span>
+        <span class="badge">🗣️ Speech enhancement</span>
+        <span class="badge">🔬 Source separation</span>
+        <span class="badge">📻 On-device inference (MCU/NPU)</span>
+      </div>
+    </div>
+  </div>
+
+  <section id="about">
+    <h2>About</h2>
+    <p>
+      I'm a research scientist in the Audio Research group at <a href="https://www.jabra.com" rel="noopener">Jabra (GN Audio)</a>
+      in Copenhagen, Denmark. My work combines deep learning with traditional DSP to improve
+      voice pickup and speech quality in hearing aids, headsets and earbuds — from model design
+      down to deployment on microcontroller NPUs under strict latency, memory and energy budgets.
+    </p>
+    <p style="margin-top: 10px;">
+      Before that, I did my PhD at <a href="https://www.telecom-paris.fr" rel="noopener">Télécom ParisTech</a>
+      on music source separation with structured NMF (see <a href="https://github.com/LarocheC/SPNMF">SPNMF</a>).
+      These days you'll find me hacking on quantization-aware training, GPU kernels for audio
+      metrics, and speech-to-text pipelines for STM32N6 boards.
+    </p>
+  </section>
+
+  <section id="stats">
+    <h2>GitHub stats <span class="anchor">live from github.com/LarocheC</span></h2>
+    <div class="stats">
+      <img src="https://github-readme-stats.vercel.app/api?username=LarocheC&show_icons=true&hide_border=true&bg_color=fafafa&title_color=1c1e21&icon_color=0e7c66&text_color=5f6b7a" alt="GitHub stats for LarocheC" loading="lazy">
+      <div class="stats-row">
+        <img src="https://github-readme-stats.vercel.app/api/top-langs/?username=LarocheC&layout=compact&hide_border=true&bg_color=fafafa&title_color=1c1e21&text_color=5f6b7a&langs_count=8" alt="Most used languages of LarocheC" loading="lazy">
+        <img src="https://github-readme-streak-stats.herokuapp.com/?user=LarocheC&hide_border=true&background=fafafa&ring=0e7c66&fire=0e7c66&currStreakLabel=1c1e21&sideLabels=5f6b7a&currStreakNum=1c1e21&dates=5f6b7a" alt="Contribution streak of LarocheC" loading="lazy">
+      </div>
+    </div>
+  </section>
+
+  <section id="projects">
+    <h2>Featured projects <span class="anchor">pinned on GitHub</span></h2>
+    <div class="cards">
+      <a class="card" href="https://github.com/LarocheC/eco8-neaixt">
+        <h3>eco8-neaixt <span style="font-size:12px;color:var(--muted);font-weight:400">★ 3</span></h3>
+        <p>NPU-accelerated neural inference on STM32N6 for the Chips JU <em>eco8</em> edge-AI project.</p>
+        <div class="meta"><span><span class="dot" style="background:#555"></span> C</span><span>MIT</span></div>
+      </a>
+      <a class="card" href="https://github.com/LarocheC/triton-pesq">
+        <h3>triton-pesq</h3>
+        <p>Triton GPU backend for torch-pesq: the PESQ loss with every stage, forward and backward, as a Triton kernel.</p>
+        <div class="meta"><span><span class="dot" style="background:#3572A5"></span> Python</span></div>
+      </a>
+      <a class="card" href="https://github.com/LarocheC/llm-sqa">
+        <h3>llm-sqa</h3>
+        <p>Descriptive speech quality assessment with the SALMONN audio LLM — a calibrated, multi-dimensional rater.</p>
+        <div class="meta"><span><span class="dot" style="background:#3572A5"></span> Python</span></div>
+      </a>
+      <a class="card" href="https://github.com/LarocheC/stm32n6-stt">
+        <h3>stm32n6-stt</h3>
+        <p>Speech-to-text on the STM32N6 microcontroller with its NPU.</p>
+        <div class="meta"><span><span class="dot" style="background:#555"></span> C</span><span>Apache-2.0</span></div>
+      </a>
+      <a class="card" href="https://github.com/LarocheC/gru-qat">
+        <h3>gru-qat <span style="font-size:12px;color:var(--muted);font-weight:400">★ 2</span></h3>
+        <p>Quantization-aware training for GRUs — small, accurate recurrent models for on-device audio.</p>
+        <div class="meta"><span><span class="dot" style="background:#3572A5"></span> Python</span><span>MIT</span></div>
+      </a>
+      <a class="card" href="https://github.com/LarocheC/torch-structured">
+        <h3>torch-structured</h3>
+        <p>Structured model compression in PyTorch (dynamic channel pruning for speech enhancement).</p>
+        <div class="meta"><span><span class="dot" style="background:#3572A5"></span> Python</span></div>
+      </a>
+    </div>
+    <p style="margin-top:16px; color: var(--muted); font-size: 14.5px;">
+      More on GitHub: <a href="https://github.com/LarocheC/torch-pesq">torch-pesq</a>,
+      <a href="https://github.com/LarocheC/julius-tf">julius-tf</a>,
+      <a href="https://github.com/LarocheC/SPNMF">SPNMF</a>,
+      <a href="https://github.com/LarocheC/voice-extraction">voice-extraction</a>,
+      <a href="https://github.com/LarocheC/llm-benchmark">llm-benchmark</a>,
+      <a href="https://github.com/LarocheC/dnsmos_exported">dnsmos_exported</a>,
+      <a href="https://github.com/LarocheC/build-your-own-teenygrad-a-tiny-tensor-autograd-engine">build-your-own-teenygrad</a>…
+      — see <a href="https://github.com/LarocheC?tab=repositories">all repositories</a>.
+    </p>
+  </section>
+
+  <section id="contact">
+    <h2>Get in touch</h2>
+    <div class="links">
+      <a href="https://github.com/LarocheC">
+        <svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+        GitHub
+      </a>
+      <a href="https://scholar.google.com/citations?user=jn-pQdUAAAAJ">
+        <svg viewBox="0 0 24 24"><path d="M12 24a7 7 0 1 1 0-14 7 7 0 0 1 0 14zm0-24L1 9.5l4 3.5h14l4-3.5L12 0z" opacity=".0"/><path d="M5.5 13.6v4.9c0 .8.7 1.5 1.5 1.5h8c.8 0 1.5-.7 1.5-1.5v-4.9l-5 3.4-5-3.4zM12 0L0 8.5l3 2.6 9-6.1 9 6.1 3-2.6L12 0z"/></svg>
+        Google Scholar
+      </a>
+      <a href="https://www.linkedin.com/in/clement-laroche-91944a132/">
+        <svg viewBox="0 0 24 24"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.86 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.55V9h3.57v11.45z"/></svg>
+        LinkedIn
+      </a>
+      <a href="https://www.researchgate.net/profile/Clement-Laroche">
+        <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 3a7 7 0 0 1 4.9 12l-2.1-2.1A4 4 0 1 0 12 16a4 4 0 0 0 2-3.5H9.5v-2H14a2 2 0 0 0-2-2V5z"/></svg>
+        ResearchGate
+      </a>
+      <a href="https://github.com/LarocheC?tab=repositories">
+        <svg viewBox="0 0 16 16"><path d="M2 2.5A2.5 2.5 0 0 1 4.5 0h8.75a.75.75 0 0 1 .75.75v12.5a.75.75 0 0 1-.75.75h-2.5a.75.75 0 0 1 0-1.5h1.75v-2h-8a1 1 0 0 0-.714 1.7.75.75 0 1 1-1.072 1.05A2.495 2.495 0 0 1 2 11.5Zm10.5-1h-8a1 1 0 0 0-1 1v6.708A2.486 2.486 0 0 1 4.5 9h8ZM5 12.25a.25.25 0 0 1 .25-.25h3.5a.25.25 0 0 1 .25.25v3.25a.25.25 0 0 1-.4.2l-1.45-1.087a.249.249 0 0 0-.3 0L5.4 15.7a.25.25 0 0 1-.4-.2Z"/></svg>
+        All repositories
+      </a>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap" style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+    <span>Clément Laroche · LarocheC</span>
+    <span>Plain HTML/CSS · served by GitHub Pages · stats via github-readme-stats</span>
+  </div>
+</footer>
+
+</body>
+</html>
