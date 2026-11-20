@@ -1,8 +1,6 @@
 # larochec.github.io
 
-Personal landing page of Clément Laroche: speech and audio ML on the edge.
-
-> **Status: private draft.** This repository is private and GitHub Pages is off, so nothing here is public yet.
+Source of [larochec.github.io](https://larochec.github.io/), the personal website of Clément Laroche: speech and audio ML on the edge.
 
 ## What's here
 
@@ -35,12 +33,9 @@ Everything is plain HTML in `index.html`, in page order: hero, About, Selected w
 
 The page follows the visitor's light/dark preference and remembers a manual choice (in `localStorage`). The waveform animation pauses when off-screen, freezes or resumes when clicked (or with Enter/Space when focused), and is static for visitors who prefer reduced motion. The **Noisy** and **Enhanced** buttons play the demo clip; pressing the other one mid-clip switches version at the same moment, and while a clip plays the strip draws the real audio passing through the chip. Without JavaScript, the strip, the player and the theme button are simply hidden.
 
-## Going live
+## Deployment
 
-1. Merge the page into `main`.
-2. **Settings → General → Danger zone → Change visibility → Public.** GitHub Pages needs a public repository on the free plan. Making the repository public also makes all of its branches and pull requests public.
-3. **Settings → Pages → Build and deployment → Source: Deploy from a branch → `main` / `(root)` → Save.**
-4. After a minute or two the site is live at <https://larochec.github.io/>.
+GitHub Pages serves the site from the root of `main`. Changes pushed to `main` are live within a minute or two.
 
 ## Credits
 
